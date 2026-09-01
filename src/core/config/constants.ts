@@ -3,7 +3,10 @@
  * Follows Open/Closed principle: extend via env vars, don't modify this file.
  */
 
-export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const rawSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+export const SUPABASE_URL = rawSupabaseUrl
+  ? rawSupabaseUrl.replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "")
+  : "";
 export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
 export const FACTUS_API_URL =
