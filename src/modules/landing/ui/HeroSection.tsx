@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShieldCheck, Sparkles } from "lucide-react";
+import { CheckCircle2, Sparkles } from "lucide-react";
 
 export default function HeroSection() {
   return (
@@ -12,8 +12,8 @@ export default function HeroSection() {
           {/* Left */}
           <div className="lg:col-span-7 space-y-6 sm:space-y-8 z-10 pb-8 sm:pb-16">
             <div className="inline-flex items-center gap-2 bg-white px-3.5 py-1.5 rounded-full border border-gray-200 shadow-sm text-xs font-semibold text-gray-800">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              Facturación electrónica DIAN oficial con Factus
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              Envío gratis · Garantía oficial · Devoluciones 30 días
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-black leading-[1.08] font-sans">
@@ -22,8 +22,8 @@ export default function HeroSection() {
 
             <p className="text-gray-600 text-sm sm:text-base max-w-xl leading-relaxed">
               Explora nuestra colección curada de laptops, monitores, periféricos y
-              componentes de alta gama. Cada compra emite automáticamente su factura
-              electrónica UBL 2.1 ante la DIAN.
+              componentes de alta gama. Stock en tiempo real, precios competitivos
+              y entrega garantizada a todo Colombia.
             </p>
 
             <div>
@@ -38,7 +38,7 @@ export default function HeroSection() {
               {[
                 { value: "200+", label: "Marcas líderes" },
                 { value: "2,000+", label: "Productos tech" },
-                { value: "30,000+", label: "Facturas DIAN" },
+                { value: "30,000+", label: "Pedidos entregados" },
               ].map(({ value, label }) => (
                 <div key={label}>
                   <h4 className="text-2xl sm:text-4xl font-extrabold text-black">{value}</h4>

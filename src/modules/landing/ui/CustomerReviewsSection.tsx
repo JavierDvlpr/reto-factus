@@ -13,22 +13,22 @@ const DEFAULT_REVIEWS: CustomerReview[] = [
   {
     name: "Carlos Mendoza",
     date: "Hace 2 días",
-    text: "Excelente servicio. Compré una MacBook Pro M4 Pro y la factura electrónica de la DIAN llegó a mi correo de inmediato con el CUFE verificado en el portal oficial de Factus. 100% recomendado.",
+    text: "Excelente servicio. Compré una MacBook Pro M4 Pro y llegó en perfectas condiciones al día siguiente. El empaque impecable y el seguimiento del pedido fue muy preciso. Sin duda vuelvo a comprar.",
   },
   {
     name: "Valentina Restrepo",
     date: "Hace 3 días",
-    text: "Compré el monitor Samsung Odyssey y unos audífonos Sony. La experiencia en la tienda fue súper fluida y el PDF de la factura se descarga al instante para legalizar en mi empresa.",
+    text: "Compré el monitor Samsung Odyssey y unos audífonos Sony. La experiencia en la tienda fue súper fluida, el precio fue el mejor que encontré y el envío llegó rapidísimo a Medellín.",
   },
   {
     name: "Andrés Gómez",
     date: "Hace 1 semana",
-    text: "La laptop ASUS ROG llegó impecable. Lo que más me gustó fue la transparencia con los impuestos (IVA 19%) y la factura electrónica generada automáticamente por Factus.",
+    text: "La laptop ASUS ROG llegó impecable. La calidad del producto es exactamente la que muestran en la ficha técnica. Atención al cliente excelente cuando tuve una duda con la garantía.",
   },
   {
     name: "Mariana Torres",
     date: "Hace 2 semanas",
-    text: "Excelente catálogo de periféricos. El teclado Keychron tiene una calidad inmejorable y pude consultar el código QR directamente en los servidores de la DIAN sin problemas.",
+    text: "Pedí el teclado Keychron K8 y un mousepad XL. Ambos llegaron en 48 horas a Bogotá. El teclado tiene una calidad de construcción increíble. El proceso de compra fue muy sencillo y seguro.",
   },
 ];
 

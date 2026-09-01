@@ -97,7 +97,7 @@ export default function AuthModal({
             </h2>
           </div>
           <p className="text-gray-400 text-xs sm:text-sm">
-            {subtitle || "Accede para gestionar tus compras y facturas electrónicas DIAN."}
+            {subtitle || "Accede para ver el estado de tus pedidos, guardar tu dirección y más."}
           </p>
 
           {/* Mode Switcher */}

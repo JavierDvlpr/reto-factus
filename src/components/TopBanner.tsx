@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, ShieldCheck } from "lucide-react";
-import Link from "next/link";
+import { X, Truck } from "lucide-react";
 
 export default function TopBanner() {
   const [visible, setVisible] = useState(true);
@@ -13,16 +12,11 @@ export default function TopBanner() {
     <div className="bg-black text-white text-xs sm:text-sm py-2 px-4 relative z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-center text-center relative pr-8">
         <p className="flex items-center gap-1.5 font-normal">
-          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 inline" />
+          <Truck className="w-4 h-4 text-emerald-400 shrink-0 inline" />
           <span>
-            Compra tecnología con <strong>facturación electrónica DIAN</strong> en tiempo real.
+            <strong>Envío gratis</strong> a todo Colombia en compras desde{" "}
+            <strong>$200.000</strong>
           </span>
-          <Link
-            href="/checkout"
-            className="underline font-semibold ml-1 hover:text-gray-200 transition-colors"
-          >
-            Pruébalo ahora
-          </Link>
         </p>
         <button
           onClick={() => setVisible(false)}
