@@ -1,25 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ShoppingCart,
   Search,
   Menu,
   X,
   ReceiptText,
-  User,
+  User as UserIcon,
+  Shield,
   ChevronDown,
+  LayoutDashboard,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/lib/store";
 import CartDrawer from "@/components/CartDrawer";
+import AuthModal from "@/modules/auth/ui/AuthModal";
+import UserMenu from "@/modules/auth/ui/UserMenu";
+import { useAuthStore } from "@/modules/auth/application/authStore";
 
 export default function Navbar() {
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
   const totalItems = useCartStore((s) => s.getTotalItems());
+  const { getUser, initialized, initialize } = useAuthStore();
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  const user = getUser();
+  const isAdmin = user?.isAdmin();
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/productos?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   return (
     <>
@@ -36,20 +60,19 @@ export default function Navbar() {
             </button>
 
             {/* Logo */}
-            <Link href="/" className="shrink-0 flex items-center gap-1.5">
+            <Link href="/" className="shrink-0 flex items-center gap-2">
               <span className="font-extrabold text-2xl sm:text-3xl tracking-tight text-black font-sans">
-                Tech.co
+                TechStore
               </span>
             </Link>
 
             {/* Desktop Navigation links */}
             <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-gray-700">
               <Link
-                href="/#catalogo"
-                className="hover:text-black transition-colors flex items-center gap-1"
+                href="/productos"
+                className="hover:text-black transition-colors"
               >
-                Tienda
-                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                Catálogo
               </Link>
               <Link
                 href="/#nuevas-llegadas"
@@ -63,17 +86,20 @@ export default function Navbar() {
               >
                 Más vendidos
               </Link>
-              <Link
-                href="/facturas"
-                className="hover:text-black transition-colors flex items-center gap-1 text-emerald-700 font-semibold"
-              >
-                <ReceiptText className="w-4 h-4" />
-                Facturas DIAN
-              </Link>
+
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="hover:text-black transition-colors flex items-center gap-1.5 text-black font-bold bg-gray-100 px-3 py-1.5 rounded-full"
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  Admin Panel
+                </Link>
+              )}
             </nav>
 
             {/* Search Bar (Center) */}
-            <div className="hidden md:flex flex-1 max-w-lg items-center relative">
+            <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 max-w-lg items-center relative">
               <Search className="w-4 h-4 text-gray-400 absolute left-4 pointer-events-none" />
               <input
                 type="text"
@@ -82,10 +108,11 @@ export default function Navbar() {
                 placeholder="Buscar laptops, monitores, periféricos..."
                 className="w-full bg-[#F0F0F0] text-black text-sm rounded-full pl-11 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-black/10 transition-all placeholder:text-gray-400"
               />
-            </div>
+            </form>
 
             {/* Right actions */}
             <div className="flex items-center gap-2 sm:gap-3">
+              {/* Cart Drawer Trigger */}
               <button
                 onClick={() => setCartOpen(true)}
                 className="p-2.5 text-black hover:bg-gray-100 rounded-full transition-colors relative"
@@ -99,18 +126,23 @@ export default function Navbar() {
                 )}
               </button>
 
-              <Link
-                href="/facturas"
-                className="p-2.5 text-black hover:bg-gray-100 rounded-full transition-colors hidden sm:block"
-                title="Historial de facturas electrónicas"
-              >
-                <User className="w-5 h-5" />
-              </Link>
+              {/* User Menu / Login Button */}
+              {user ? (
+                <UserMenu />
+              ) : (
+                <button
+                  onClick={() => setAuthModalOpen(true)}
+                  className="flex items-center gap-2 bg-black text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-full hover:bg-gray-900 transition-all shadow-sm active:scale-95"
+                >
+                  <UserIcon className="w-4 h-4" />
+                  <span>Ingresar</span>
+                </button>
+              )}
             </div>
           </div>
 
           {/* Mobile search bar */}
-          <div className="md:hidden pb-4">
+          <form onSubmit={handleSearchSubmit} className="md:hidden pb-4">
             <div className="relative flex items-center">
               <Search className="w-4 h-4 text-gray-400 absolute left-4 pointer-events-none" />
               <input
@@ -121,17 +153,17 @@ export default function Navbar() {
                 className="w-full bg-[#F0F0F0] text-black text-sm rounded-full pl-11 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-black/10 transition-all placeholder:text-gray-400"
               />
             </div>
-          </div>
+          </form>
 
           {/* Mobile menu dropdown */}
           {mobileOpen && (
             <div className="lg:hidden border-t border-gray-200 py-4 space-y-2">
               <Link
-                href="/#catalogo"
+                href="/productos"
                 onClick={() => setMobileOpen(false)}
                 className="block px-3 py-2 text-base font-medium text-gray-800 hover:bg-gray-100 rounded-lg"
               >
-                Tienda completa
+                Catálogo completo
               </Link>
               <Link
                 href="/#nuevas-llegadas"
@@ -147,20 +179,37 @@ export default function Navbar() {
               >
                 Más vendidos
               </Link>
-              <Link
-                href="/facturas"
-                onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2 text-base font-semibold text-emerald-700 hover:bg-gray-100 rounded-lg flex items-center gap-2"
-              >
-                <ReceiptText className="w-5 h-5" />
-                Historial de facturas DIAN
-              </Link>
+
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  onClick={() => setMobileOpen(false)}
+                  className="block px-3 py-2 text-base font-bold text-black bg-gray-100 rounded-lg flex items-center gap-2"
+                >
+                  <Shield className="w-4 h-4" />
+                  Panel de Administración
+                </Link>
+              )}
+
+              {!user && (
+                <button
+                  onClick={() => {
+                    setMobileOpen(false);
+                    setAuthModalOpen(true);
+                  }}
+                  className="w-full text-left px-3 py-2 text-base font-semibold text-black hover:bg-gray-100 rounded-lg flex items-center gap-2"
+                >
+                  <UserIcon className="w-4 h-4" />
+                  Iniciar sesión (Demo)
+                </button>
+              )}
             </div>
           )}
         </div>
       </header>
 
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+      <AuthModal open={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </>
   );
 }
