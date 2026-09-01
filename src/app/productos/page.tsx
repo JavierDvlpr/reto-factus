@@ -82,7 +82,7 @@ function ProductosContent() {
                 </Badge>
               </div>
               <p className="text-gray-500 text-xs sm:text-sm mt-0.5">
-                {products.length} productos con stock en vivo y facturación electrónica DIAN
+                {products.length} productos con stock disponible y envío inmediato
               </p>
             </div>
           </div>

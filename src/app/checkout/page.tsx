@@ -93,7 +93,7 @@ export default function CheckoutPage() {
         </div>
         <h2 className="text-2xl font-extrabold text-black">Tu carrito está vacío</h2>
         <p className="text-gray-500 mt-2 max-w-sm text-sm">
-          Agrega productos desde la tienda para proceder con la simulación de pago y facturación electrónica DIAN.
+          Agrega productos desde la tienda para proceder con el pago y envío de tu pedido.
         </p>
         <Link href="/productos" className="mt-6">
           <button className="bg-black text-white font-semibold px-8 py-3.5 rounded-full hover:bg-black/85 transition-colors">
@@ -192,7 +192,7 @@ export default function CheckoutPage() {
   const handlePaymentApproved = async (transactionId: string, methodCode: PaymentMethodCode) => {
     if (!savedFormData) return;
     setLoading(true);
-    toast.loading("Emitiendo factura electrónica ante la DIAN...", { id: "factus-loading" });
+    toast.loading("Confirmando pedido y procesando orden...", { id: "factus-loading" });
 
     const orderItems = items.map((i) => ({
       productId: i.product.id,
@@ -219,7 +219,7 @@ export default function CheckoutPage() {
     toast.dismiss("factus-loading");
 
     if (result.success) {
-      toast.success("¡Factura validada por la DIAN exitosamente!");
+      toast.success("¡Pedido confirmado exitosamente!");
       clearCart();
       setInvoiceResult(result.data);
     } else {

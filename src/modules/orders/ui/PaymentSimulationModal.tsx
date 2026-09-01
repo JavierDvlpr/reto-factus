@@ -345,7 +345,7 @@ export default function PaymentSimulationModal({
                     : "bg-red-600 text-white hover:bg-red-700"
                 }`}
               >
-                {result.approved ? "Continuar → Generar Factura DIAN" : "Intentar otro método"}
+                {result.approved ? "Continuar y confirmar pedido" : "Intentar con otro método"}
               </button>
             </div>
           )}

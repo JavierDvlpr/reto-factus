@@ -69,5 +69,7 @@ export const DEMO_ACCOUNTS = {
 
 // ─── App metadata ─────────────────────────────────────────────────────────────
 export const APP_NAME = "TechStore CO";
+export const APP_TAGLINE =
+  "Tecnología de última generación con garantía oficial y envío a todo Colombia.";
 export const APP_DESCRIPTION =
-  "Tecnología de última generación con facturación electrónica DIAN oficial impulsada por Factus API V2.";
+  "Encuentra laptops, monitores, periféricos y hardware de alto rendimiento con entrega a todo Colombia.";

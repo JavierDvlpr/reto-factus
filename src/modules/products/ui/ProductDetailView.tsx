@@ -245,7 +245,7 @@ export default function ProductDetailView({ productData }: ProductDetailViewProp
               {[
                 { icon: Shield, label: "Garantía oficial" },
                 { icon: Truck, label: "Envío rápido" },
-                { icon: ReceiptText, label: "Factura DIAN" },
+                { icon: CheckCircle2, label: "Compra segura" },
               ].map(({ icon: Icon, label }) => (
                 <div key={label} className="flex flex-col items-center gap-1.5 text-center">
                   <div className="w-10 h-10 rounded-full bg-[#F0F0F0] flex items-center justify-center">

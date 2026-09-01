@@ -136,14 +136,14 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
               </div>
               <Separator className="bg-gray-200" />
               <div className="flex items-center justify-between text-base font-extrabold text-black pt-1">
-                <span>Total a facturar</span>
+                <span>Total estimado</span>
                 <span className="text-xl">{formatCOP(total * 1.19)}</span>
               </div>
             </div>
 
             <Link href="/checkout" onClick={onClose} className="block">
               <button className="w-full bg-black text-white font-semibold text-sm py-4 rounded-full flex items-center justify-center gap-2 hover:bg-black/85 transition-all shadow-md active:scale-95">
-                Ir al checkout con factura DIAN
+                Continuar con la compra
                 <ArrowRight className="w-4 h-4" />
               </button>
             </Link>

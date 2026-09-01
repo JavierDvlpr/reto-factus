@@ -16,21 +16,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tech.co — Tecnología de punta y Facturación Electrónica DIAN",
+  title: "TechStore CO — Lo mejor en tecnología y hardware",
   description:
-    "Encuentra laptops, monitores, periféricos y hardware de alto rendimiento. Cada compra genera automáticamente su factura electrónica oficial con la DIAN vía Factus API.",
+    "Encuentra laptops, monitores, periféricos y hardware de alto rendimiento con envío a todo Colombia y garantía oficial.",
   keywords: [
     "tecnología",
     "laptops",
     "Colombia",
-    "factura electrónica",
-    "DIAN",
-    "Factus",
+    "hardware",
     "periféricos",
+    "monitores",
+    "gaming",
   ],
   openGraph: {
-    title: "Tech.co — Tecnología & Facturación Electrónica DIAN",
-    description: "Encuentra la mejor tecnología con factura electrónica DIAN oficial.",
+    title: "TechStore CO — Lo mejor en tecnología y hardware",
+    description: "Encuentra la mejor tecnología con garantía oficial y envío a todo Colombia.",
     type: "website",
   },
 };
