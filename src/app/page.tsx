@@ -211,69 +211,69 @@ export default function HomePage() {
             {/* 1. Gaming & Esports (40% width) */}
             <Link
               href="/productos"
-              className="md:col-span-5 group relative h-[240px] sm:h-[290px] rounded-[24px] bg-white overflow-hidden p-6 flex flex-col justify-between hover:shadow-lg transition-all"
+              className="md:col-span-5 group relative h-[240px] sm:h-[290px] rounded-[24px] bg-black overflow-hidden p-6 flex flex-col justify-between hover:shadow-xl transition-all"
             >
-              <span className="font-extrabold text-2xl sm:text-3xl text-black z-10">
+              <span className="font-extrabold text-2xl sm:text-3xl text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] z-10">
                 Gaming
               </span>
               <Image
                 src="/images/category_gaming.jpg"
                 alt="Equipos para Gaming y Streaming"
                 fill
-                className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                className="object-cover object-center transition-transform duration-500 group-hover:scale-105 opacity-90"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/30 pointer-events-none" />
             </Link>
 
             {/* 2. Oficina & Productividad (60% width) */}
             <Link
               href="/productos"
-              className="md:col-span-7 group relative h-[240px] sm:h-[290px] rounded-[24px] bg-white overflow-hidden p-6 flex flex-col justify-between hover:shadow-lg transition-all"
+              className="md:col-span-7 group relative h-[240px] sm:h-[290px] rounded-[24px] bg-black overflow-hidden p-6 flex flex-col justify-between hover:shadow-xl transition-all"
             >
-              <span className="font-extrabold text-2xl sm:text-3xl text-black z-10">
+              <span className="font-extrabold text-2xl sm:text-3xl text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] z-10">
                 Productividad
               </span>
               <Image
                 src="/images/category_office.jpg"
                 alt="Oficina y Productividad Profesional"
                 fill
-                className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                className="object-cover object-center transition-transform duration-500 group-hover:scale-105 opacity-90"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/30 pointer-events-none" />
             </Link>
 
             {/* 3. Audio & Creación (60% width) */}
             <Link
               href="/productos"
-              className="md:col-span-7 group relative h-[240px] sm:h-[290px] rounded-[24px] bg-white overflow-hidden p-6 flex flex-col justify-between hover:shadow-lg transition-all"
+              className="md:col-span-7 group relative h-[240px] sm:h-[290px] rounded-[24px] bg-black overflow-hidden p-6 flex flex-col justify-between hover:shadow-xl transition-all"
             >
-              <span className="font-extrabold text-2xl sm:text-3xl text-black z-10">
+              <span className="font-extrabold text-2xl sm:text-3xl text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] z-10">
                 Audio & Hi-Fi
               </span>
               <Image
                 src="/images/category_audio.jpg"
                 alt="Audio profesional y auriculares"
                 fill
-                className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                className="object-cover object-center transition-transform duration-500 group-hover:scale-105 opacity-90"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/30 pointer-events-none" />
             </Link>
 
             {/* 4. Setup & Periféricos (40% width) */}
             <Link
               href="/productos"
-              className="md:col-span-5 group relative h-[240px] sm:h-[290px] rounded-[24px] bg-white overflow-hidden p-6 flex flex-col justify-between hover:shadow-lg transition-all"
+              className="md:col-span-5 group relative h-[240px] sm:h-[290px] rounded-[24px] bg-black overflow-hidden p-6 flex flex-col justify-between hover:shadow-xl transition-all"
             >
-              <span className="font-extrabold text-2xl sm:text-3xl text-black z-10">
+              <span className="font-extrabold text-2xl sm:text-3xl text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] z-10">
                 Periféricos
               </span>
               <Image
                 src="/images/category_peripherals.jpg"
                 alt="Teclados mecánicos y periféricos"
                 fill
-                className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                className="object-cover object-center transition-transform duration-500 group-hover:scale-105 opacity-90"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/30 pointer-events-none" />
             </Link>
           </div>
         </div>
