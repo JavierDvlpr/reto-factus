@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
@@ -12,6 +12,7 @@ import { formatCOP } from "@/lib/products";
 import { MUNICIPIOS } from "@/core/config/constants";
 import { billingService, type IssuedInvoiceResult } from "@/modules/billing/application/BillingService";
 import PaymentSimulationModal from "@/modules/orders/ui/PaymentSimulationModal";
+import AuthModal from "@/modules/auth/ui/AuthModal";
 import type { PaymentMethodCode } from "@/modules/orders/application/PaymentSimulationService";
 import {
   CreditCard,
@@ -27,6 +28,7 @@ import {
   QrCode,
   Lock,
   ShoppingBag,
+  LogIn,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
@@ -45,11 +47,17 @@ type FormData = z.infer<typeof schema>;
 
 export default function CheckoutPage() {
   const { items, getTotalPrice, clearCart } = useCartStore();
-  const { getUser } = useAuthStore();
+  const { getUser, initialize, initialized } = useAuthStore();
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
   const user = getUser();
 
   const [loading, setLoading] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [invoiceResult, setInvoiceResult] = useState<IssuedInvoiceResult | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [savedFormData, setSavedFormData] = useState<FormData | null>(null);
@@ -60,6 +68,7 @@ export default function CheckoutPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -69,6 +78,14 @@ export default function CheckoutPage() {
       municipality_id: "11001",
     },
   });
+
+  // Keep form synchronized when user logs in
+  useEffect(() => {
+    if (user) {
+      if (user.fullName) setValue("names", user.fullName);
+      if (user.email) setValue("email", user.email);
+    }
+  }, [user, setValue]);
 
   // ─── Empty Cart State ───────────────────────────────────────────────────────
   if (items.length === 0 && !invoiceResult) {
@@ -205,9 +222,17 @@ export default function CheckoutPage() {
     );
   }
 
-  // ─── Step 1: Trigger Form Submission -> Open Payment Simulation ─────────────
+  // ─── Step 1: Form Submit -> Check Auth & Open Payment Simulation ────────────
   const onFormSubmit = (data: FormData) => {
     setSavedFormData(data);
+
+    // If customer is not authenticated yet, prompt them to sign in or identify
+    if (!user) {
+      toast.info("Por favor inicia sesión o identifícate para completar tu compra.");
+      setAuthModalOpen(true);
+      return;
+    }
+
     setPaymentModalOpen(true);
   };
 
@@ -279,6 +304,33 @@ export default function CheckoutPage() {
             Emisión UBL 2.1 en tiempo real
           </div>
         </div>
+
+        {/* Customer Auth Prompt if guest */}
+        {!user && (
+          <div className="mb-6 bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-black shrink-0">
+                <User className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-black">
+                  ¿Ya tienes una cuenta de cliente?
+                </p>
+                <p className="text-xs text-gray-500">
+                  Inicia sesión para autocompletar tus datos fiscales y guardar tu factura.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAuthModalOpen(true)}
+              className="bg-black text-white text-xs font-semibold px-5 py-2.5 rounded-full hover:bg-gray-900 transition-all shrink-0 flex items-center gap-1.5"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              Iniciar sesión
+            </button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Form (7 cols) */}
@@ -420,6 +472,20 @@ export default function CheckoutPage() {
         onClose={() => setPaymentModalOpen(false)}
         onApproved={handlePaymentApproved}
         total={totalWithIVA}
+      />
+
+      {/* Auth Modal for Customer at checkout if needed */}
+      <AuthModal
+        open={authModalOpen}
+        onClose={() => {
+          setAuthModalOpen(false);
+          // If user logged in, allow them to proceed
+          if (savedFormData) {
+            setPaymentModalOpen(true);
+          }
+        }}
+        title="Identificación de Comprador"
+        subtitle="Ingresa con tu cuenta o regístrate para asociar tu factura electrónica DIAN."
       />
     </div>
   );

@@ -8,7 +8,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import type { Product } from "../domain/Product";
+import type { ProductProps } from "../domain/Product";
+import { Product } from "../domain/Product";
 import { useCartStore } from "@/lib/store";
 import {
   Star,
@@ -28,10 +29,11 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
 interface ProductDetailViewProps {
-  product: Product;
+  productData: ProductProps;
 }
 
-export default function ProductDetailView({ product }: ProductDetailViewProps) {
+export default function ProductDetailView({ productData }: ProductDetailViewProps) {
+  const product = new Product(productData);
   const addItem = useCartStore((s) => s.addItem);
   const [qty, setQty] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);

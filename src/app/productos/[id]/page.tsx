@@ -1,6 +1,6 @@
 /**
  * Dynamic Product Detail Page — /productos/[id]
- * SSR-compatible with server-side data fetching and realtime client hydration.
+ * SSR-compatible with server-side data fetching and plain object serialization for RSC.
  */
 
 import { Metadata } from "next";
@@ -35,5 +35,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const product = await repo.findById(id);
   if (!product) notFound();
 
-  return <ProductDetailView product={product} />;
+  // Pass plain POJO to Client Component across the RSC boundary
+  return <ProductDetailView productData={product.toJSON()} />;
 }

@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Auth Modal — Interactive login form with 1-click demo account switcher.
- * Shows "Ingresar como Administrador" and "Ingresar como Cliente" quick-access buttons.
+ * Auth Modal — Realistic authentication modal for customers and admins.
+ * Provides clean Sign In / Register tabs and discrete test credentials helper.
  */
 
 import { useState } from "react";
@@ -15,20 +15,32 @@ import {
   Loader2,
   X,
   LogIn,
-  Zap,
+  UserPlus,
+  KeyRound,
 } from "lucide-react";
 import { toast } from "sonner";
+import { DEMO_ACCOUNTS } from "@/core/config/constants";
 
 interface AuthModalProps {
   open: boolean;
   onClose: () => void;
+  title?: string;
+  subtitle?: string;
 }
 
-export default function AuthModal({ open, onClose }: AuthModalProps) {
-  const { signIn, loginAsAdmin, loginAsCustomer, loading } = useAuthStore();
+export default function AuthModal({
+  open,
+  onClose,
+  title,
+  subtitle,
+}: AuthModalProps) {
+  const { signIn, loading } = useAuthStore();
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showDemoHint, setShowDemoHint] = useState(false);
 
   if (!open) return null;
 
@@ -44,26 +56,15 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
     }
   };
 
-  const handleDemoAdmin = async () => {
-    setError(null);
-    const result = await loginAsAdmin();
-    if (result.success) {
-      toast.success(`Bienvenido Administrador 🛡️`, { description: result.data.email });
-      onClose();
+  const handleFillDemo = (type: "admin" | "customer") => {
+    if (type === "admin") {
+      setEmail(DEMO_ACCOUNTS.admin.email);
+      setPassword(DEMO_ACCOUNTS.admin.password);
     } else {
-      setError(result.error as string);
+      setEmail(DEMO_ACCOUNTS.customer.email);
+      setPassword(DEMO_ACCOUNTS.customer.password);
     }
-  };
-
-  const handleDemoCustomer = async () => {
     setError(null);
-    const result = await loginAsCustomer();
-    if (result.success) {
-      toast.success(`Bienvenido Cliente 🛒`, { description: result.data.email });
-      onClose();
-    } else {
-      setError(result.error as string);
-    }
   };
 
   return (
@@ -74,67 +75,87 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
         onClick={onClose}
       />
 
-      {/* Modal */}
-      <div className="relative w-full max-w-md bg-white rounded-[32px] shadow-2xl overflow-hidden">
-        {/* Close */}
+      {/* Modal Card */}
+      <div className="relative w-full max-w-md bg-white rounded-[32px] shadow-2xl overflow-hidden border border-gray-100">
+        {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors z-10"
-          aria-label="Cerrar"
+          className="absolute top-5 right-5 p-2 rounded-full hover:bg-gray-100 transition-colors z-10 text-gray-500"
+          aria-label="Cerrar modal"
         >
-          <X className="w-5 h-5 text-gray-500" />
+          <X className="w-5 h-5" />
         </button>
 
         {/* Header */}
-        <div className="bg-black text-white p-8 pb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <LogIn className="w-6 h-6" />
-            <h2 className="text-2xl font-extrabold">Iniciar sesión</h2>
+        <div className="bg-gradient-to-b from-gray-900 to-black text-white p-8 pb-6">
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
+              {mode === "login" ? <LogIn className="w-4 h-4 text-emerald-400" /> : <UserPlus className="w-4 h-4 text-emerald-400" />}
+            </div>
+            <h2 className="text-2xl font-extrabold">
+              {title || (mode === "login" ? "Iniciar sesión" : "Crear cuenta")}
+            </h2>
           </div>
-          <p className="text-gray-400 text-sm">
-            Accede a tu cuenta o usa una cuenta demo para explorar la plataforma.
+          <p className="text-gray-400 text-xs sm:text-sm">
+            {subtitle || "Accede para gestionar tus compras y facturas electrónicas DIAN."}
           </p>
+
+          {/* Mode Switcher */}
+          <div className="flex bg-white/10 rounded-xl p-1 mt-5">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("login");
+                setError(null);
+              }}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                mode === "login"
+                  ? "bg-white text-black shadow"
+                  : "text-gray-300 hover:text-white"
+              }`}
+            >
+              Iniciar sesión
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("register");
+                setError(null);
+              }}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                mode === "register"
+                  ? "bg-white text-black shadow"
+                  : "text-gray-300 hover:text-white"
+              }`}
+            >
+              Registrarse
+            </button>
+          </div>
         </div>
 
-        <div className="p-8 space-y-6">
-          {/* Quick Demo Buttons */}
-          <div className="space-y-3">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5" />
-              Acceso rápido — Cuentas Demo
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={handleDemoAdmin}
-                disabled={loading}
-                className="flex flex-col items-center gap-1.5 p-4 rounded-2xl border-2 border-black bg-black text-white hover:bg-gray-900 transition-all disabled:opacity-60 active:scale-95"
-              >
-                <Shield className="w-5 h-5" />
-                <span className="text-xs font-bold">Administrador</span>
-                <span className="text-[10px] text-gray-400">admin@techstore.co</span>
-              </button>
-              <button
-                onClick={handleDemoCustomer}
-                disabled={loading}
-                className="flex flex-col items-center gap-1.5 p-4 rounded-2xl border-2 border-gray-200 hover:border-black hover:bg-gray-50 transition-all disabled:opacity-60 active:scale-95"
-              >
-                <User className="w-5 h-5" />
-                <span className="text-xs font-bold">Cliente</span>
-                <span className="text-[10px] text-gray-400">cliente@techstore.co</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400 font-medium">O con tu cuenta</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
-
-          {/* Login Form */}
+        {/* Form Body */}
+        <div className="p-8 space-y-5">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
+            {mode === "register" && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Nombre completo
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Ej. Juan Pérez"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black transition-all"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Correo electrónico
               </label>
@@ -144,14 +165,14 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="correo@empresa.com"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black transition-all"
+                  placeholder="usuario@correo.com"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black transition-all"
                   required
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Contraseña
               </label>
@@ -162,14 +183,14 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black transition-all"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black transition-all"
                   required
                 />
               </div>
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 text-xs text-red-700 font-medium">
                 {error}
               </div>
             )}
@@ -177,16 +198,65 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-black text-white font-semibold py-3.5 rounded-full hover:bg-gray-900 transition-all disabled:opacity-60 flex items-center justify-center gap-2 active:scale-[0.98]"
+              className="w-full bg-black text-white font-semibold py-3.5 rounded-full hover:bg-gray-900 transition-all disabled:opacity-60 flex items-center justify-center gap-2 shadow-md active:scale-[0.98] text-sm"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
+              ) : mode === "login" ? (
                 <LogIn className="w-4 h-4" />
+              ) : (
+                <UserPlus className="w-4 h-4" />
               )}
-              Iniciar sesión
+              {mode === "login" ? "Ingresar a mi cuenta" : "Crear cuenta"}
             </button>
           </form>
+
+          {/* Discreet Demo Helper Pill (Collapsible) */}
+          <div className="pt-2 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => setShowDemoHint(!showDemoHint)}
+              className="text-[11px] text-gray-500 hover:text-black flex items-center justify-between w-full font-medium"
+            >
+              <span className="flex items-center gap-1.5">
+                <KeyRound className="w-3.5 h-3.5 text-gray-400" />
+                ¿Deseas autorrellenar cuentas de prueba?
+              </span>
+              <span className="text-gray-400">{showDemoHint ? "▲" : "▼"}</span>
+            </button>
+
+            {showDemoHint && (
+              <div className="grid grid-cols-2 gap-2 mt-3 animate-in fade-in duration-150">
+                <button
+                  type="button"
+                  onClick={() => handleFillDemo("admin")}
+                  className="p-2.5 rounded-xl border border-gray-200 hover:border-black bg-gray-50 hover:bg-white transition-all text-left"
+                >
+                  <div className="flex items-center gap-1 text-[11px] font-bold text-black">
+                    <Shield className="w-3 h-3 text-black" />
+                    Admin
+                  </div>
+                  <p className="text-[10px] text-gray-500 truncate mt-0.5">
+                    admin@techstore.co
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleFillDemo("customer")}
+                  className="p-2.5 rounded-xl border border-gray-200 hover:border-black bg-gray-50 hover:bg-white transition-all text-left"
+                >
+                  <div className="flex items-center gap-1 text-[11px] font-bold text-black">
+                    <User className="w-3 h-3 text-gray-700" />
+                    Cliente
+                  </div>
+                  <p className="text-[10px] text-gray-500 truncate mt-0.5">
+                    cliente@techstore.co
+                  </p>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
