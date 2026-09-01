@@ -347,7 +347,7 @@ export default function CheckoutPage() {
                     <Label htmlFor="municipality_id">Municipio *</Label>
                     <Select
                       defaultValue="11001"
-                      onValueChange={(val) => setValue("municipality_id", val)}
+                      onValueChange={(val) => setValue("municipality_id", val as string)}
                     >
                       <SelectTrigger id="municipality_id">
                         <SelectValue placeholder="Selecciona municipio" />
@@ -380,7 +380,7 @@ export default function CheckoutPage() {
                 <CardContent>
                   <Select
                     defaultValue="10"
-                    onValueChange={(val) => setValue("payment_method", val)}
+                    onValueChange={(val) => setValue("payment_method", val as string)}
                   >
                     <SelectTrigger id="payment_method">
                       <SelectValue />
