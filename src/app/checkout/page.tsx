@@ -174,17 +174,9 @@ export default function CheckoutPage() {
     );
   }
 
-  // ─── Step 1: Form Submit -> Check Auth & Open Payment Simulation ────────────
+  // ─── Step 1: Form Submit -> Open Payment Simulation ─────────────────────────
   const onFormSubmit = (data: FormData) => {
     setSavedFormData(data);
-
-    // If customer is not authenticated yet, prompt them to sign in or identify
-    if (!user) {
-      toast.info("Por favor inicia sesión o identifícate para completar tu compra.");
-      setAuthModalOpen(true);
-      return;
-    }
-
     setPaymentModalOpen(true);
   };
 

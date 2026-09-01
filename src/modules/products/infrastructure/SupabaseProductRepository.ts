@@ -141,12 +141,19 @@ export class SupabaseProductRepository implements IProductRepository {
 
   // ─── Stock Manager ─────────────────────────────────────────────────────────
   async updateStock(id: string, newStock: number): Promise<Result<Product>> {
-    if (!isSupabaseConfigured()) return fail("Supabase no configurado");
+    if (!isSupabaseConfigured()) {
+      const p = this._legacyFindById(id);
+      if (p) {
+        const legacy = LEGACY_PRODUCTS.find((item) => item.id === id);
+        if (legacy) legacy.stock = newStock;
+        return ok(p);
+      }
+      return fail("Producto no encontrado");
+    }
     return this.update(id, { stock: newStock });
   }
 
   async decrementStock(id: string, quantity: number): Promise<Result<Product>> {
-    if (!isSupabaseConfigured()) return fail("Supabase no configurado");
     try {
       const product = await this.findById(id);
       if (!product) return fail("Producto no encontrado");
