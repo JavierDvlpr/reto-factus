@@ -3,18 +3,7 @@
 import { useState } from "react";
 import { useCartStore } from "@/lib/store";
 import { formatCOP } from "@/lib/products";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
   CreditCard,
@@ -23,32 +12,33 @@ import {
   Download,
   ArrowLeft,
   ReceiptText,
-  Shield,
+  ShieldCheck,
   User,
   MapPin,
   ExternalLink,
   QrCode,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import Image from "next/image";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 const schema = z.object({
-  names: z.string().min(3, "Nombre requerido"),
-  identification: z.string().min(6, "Cédula/NIT requerido"),
-  email: z.string().email("Email inválido"),
+  names: z.string().min(3, "Ingresa tu nombre completo"),
+  identification: z.string().min(6, "Ingresa un número de documento válido"),
+  email: z.string().email("Correo electrónico no válido"),
   phone: z.string().min(7, "Teléfono requerido"),
   address: z.string().min(5, "Dirección requerida"),
-  municipality_id: z.string().min(1, "Municipio requerido"),
-  payment_method: z.string().min(1, "Método de pago requerido"),
+  municipality_id: z.string().min(1, "Selecciona un municipio"),
+  payment_method: z.string().min(1, "Selecciona un medio de pago"),
 });
 
 type FormData = z.infer<typeof schema>;
 
-// Municipios principales Colombia (código DIAN)
 const MUNICIPIOS = [
   { id: "11001", name: "Bogotá D.C. (Cundinamarca)" },
   { id: "05001", name: "Medellín (Antioquia)" },
@@ -99,22 +89,24 @@ export default function CheckoutPage() {
 
   if (items.length === 0 && !invoiceResult) {
     return (
-      <div className="min-h-screen pt-24 flex flex-col items-center justify-center px-4 text-center gap-6">
-        <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center text-4xl">
+      <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 text-center py-16">
+        <div className="w-20 h-20 rounded-full bg-[#F0F0F0] flex items-center justify-center text-3xl mb-4">
           🛒
         </div>
-        <h2 className="text-2xl font-bold">Tu carrito está vacío</h2>
-        <p className="text-muted-foreground">Agrega productos antes de ir al checkout</p>
-        <Link href="/">
-          <Button className="gradient-brand text-white border-0">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Ir al catálogo
-          </Button>
+        <h2 className="text-2xl font-extrabold text-black">Tu carrito está vacío</h2>
+        <p className="text-gray-500 mt-2 max-w-sm">
+          Agrega productos desde la tienda para proceder con la facturación electrónica.
+        </p>
+        <Link href="/" className="mt-6">
+          <button className="bg-black text-white font-semibold px-8 py-3.5 rounded-full hover:bg-black/85 transition-colors">
+            ← Volver al catálogo
+          </button>
         </Link>
       </div>
     );
   }
 
-  // ─── Success state ───────────────────────────────────────────────────────
+  // ─── Estado de Éxito: Factura DIAN Emitida ──────────────────────────────────
   if (invoiceResult) {
     const handleDownload = async () => {
       setDownloadingPdf(true);
@@ -125,142 +117,134 @@ export default function CheckoutPage() {
         link.href = `data:application/pdf;base64,${base64}`;
         link.download = `factura-${invoiceResult.number}.pdf`;
         link.click();
-        toast.success("PDF descargado correctamente");
+        toast.success("Factura descargada exitosamente en formato PDF");
       } catch {
-        toast.error("Error al descargar el PDF de Factus");
+        toast.error("Error al descargar el PDF desde Factus API");
       } finally {
         setDownloadingPdf(false);
       }
     };
 
     return (
-      <div className="min-h-screen pt-24 pb-12 flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-xl">
-          <Card className="glass border-green-500/30 glow-brand text-center">
-            <CardContent className="pt-8 pb-8 space-y-6">
-              <div className="flex justify-center">
-                <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center">
-                  <CheckCircle2 className="w-10 h-10 text-green-400" />
-                </div>
-              </div>
+      <div className="min-h-screen py-16 px-4 bg-[#F2F0F1]">
+        <div className="max-w-xl mx-auto">
+          <div className="bg-white rounded-[32px] p-8 sm:p-10 shadow-xl border border-gray-200 text-center space-y-6">
+            <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+            </div>
 
-              <div>
-                <h2 className="text-2xl font-bold text-green-400">
-                  ¡Factura Electrónica Validada!
-                </h2>
-                <p className="text-muted-foreground mt-1">
-                  Tu factura fue generada y enviada a la DIAN mediante Factus Sandbox
-                </p>
-              </div>
+            <div>
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+                Validada oficialmente por la DIAN
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-black mt-3">
+                ¡Factura electrónica emitida!
+              </h2>
+              <p className="text-gray-500 text-sm mt-1">
+                Comprobante generado en tiempo real vía API Factus V2
+              </p>
+            </div>
 
-              <div className="bg-muted/40 rounded-xl p-5 space-y-3 text-left">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">Número de Factura</span>
-                  <span className="font-mono font-bold text-primary text-base">
-                    {invoiceResult.number}
+            <div className="bg-[#F0EEED] rounded-[20px] p-6 space-y-3 text-left">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 font-medium">Número de factura</span>
+                <span className="font-extrabold text-black text-base font-mono">
+                  {invoiceResult.number}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 font-medium">Código de referencia</span>
+                <span className="font-mono text-xs text-gray-700">
+                  {invoiceResult.reference_code}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 font-medium">Estado DIAN</span>
+                <Badge className="bg-emerald-600 text-white text-xs">
+                  Validado
+                </Badge>
+              </div>
+              {invoiceResult.totals?.total && (
+                <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-300">
+                  <span className="text-gray-700 font-bold">Total facturado</span>
+                  <span className="font-extrabold text-black text-lg">
+                    {formatCOP(Number(invoiceResult.totals.total))}
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">Referencia</span>
-                  <span className="font-mono text-xs">{invoiceResult.reference_code}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">Estado DIAN</span>
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
-                    {invoiceResult.is_validated ? "✓ Validada por la DIAN" : "Procesada"}
-                  </Badge>
-                </div>
-                {invoiceResult.validated_at && (
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Fecha de validación</span>
-                    <span className="text-xs">{invoiceResult.validated_at}</span>
-                  </div>
-                )}
-                {invoiceResult.totals?.total && (
-                  <div className="flex justify-between items-center text-sm pt-2 border-t border-border/40">
-                    <span className="text-muted-foreground">Total Facturado</span>
-                    <span className="font-bold text-foreground">
-                      {formatCOP(Number(invoiceResult.totals.total))}
-                    </span>
-                  </div>
-                )}
-                <div className="text-xs text-muted-foreground pt-2 border-t border-border/40">
-                  <span className="block font-medium mb-1">CUFE:</span>
-                  <span className="font-mono break-all text-foreground/70 bg-card/60 p-2 rounded block text-[11px]">
-                    {invoiceResult.cufe}
-                  </span>
-                </div>
+              )}
+              <div className="text-xs pt-2 border-t border-gray-300">
+                <span className="block font-bold text-gray-700 mb-1">CUFE:</span>
+                <span className="font-mono break-all text-gray-600 bg-white p-2.5 rounded-lg block text-[11px] border border-gray-200">
+                  {invoiceResult.cufe}
+                </span>
               </div>
+            </div>
 
-              {/* Botones de acción */}
-              <div className="flex flex-col gap-3">
-                <Button
-                  onClick={handleDownload}
-                  disabled={downloadingPdf}
-                  className="gradient-brand text-white border-0 gap-2 py-6 text-base font-semibold"
-                >
-                  {downloadingPdf ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Download className="w-5 h-5" />
-                  )}
-                  Descargar Factura PDF
-                </Button>
+            <div className="flex flex-col gap-3 pt-2">
+              <button
+                onClick={handleDownload}
+                disabled={downloadingPdf}
+                className="w-full bg-black text-white font-semibold text-base py-4 rounded-full flex items-center justify-center gap-2 hover:bg-black/85 transition-all shadow-md"
+              >
+                {downloadingPdf ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Download className="w-5 h-5" />
+                )}
+                Descargar factura en PDF
+              </button>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {invoiceResult.links?.qr && (
-                    <a
-                      href={invoiceResult.links.qr}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Button variant="outline" className="w-full gap-2 text-xs">
-                        <QrCode className="w-4 h-4 text-primary" />
-                        Verificar QR en DIAN
-                        <ExternalLink className="w-3 h-3" />
-                      </Button>
-                    </a>
-                  )}
-                  {invoiceResult.links?.public_url && (
-                    <a
-                      href={invoiceResult.links.public_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Button variant="outline" className="w-full gap-2 text-xs">
-                        <ReceiptText className="w-4 h-4 text-cyan" />
-                        Ver Factura Online
-                        <ExternalLink className="w-3 h-3" />
-                      </Button>
-                    </a>
-                  )}
-                </div>
-
-                <Link href="/facturas">
-                  <Button variant="ghost" className="w-full gap-2 text-muted-foreground">
-                    <ReceiptText className="w-4 h-4" />
-                    Ir al Historial de Facturas
-                  </Button>
-                </Link>
-
-                <Link href="/">
-                  <Button
-                    variant="ghost"
-                    className="w-full"
-                    onClick={() => clearCart()}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {invoiceResult.links?.qr && (
+                  <a
+                    href={invoiceResult.links.qr}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    ← Seguir comprando en la tienda
-                  </Button>
-                </Link>
+                    <button className="w-full border border-gray-300 text-black font-semibold text-xs py-3 rounded-full flex items-center justify-center gap-1.5 hover:bg-gray-50 transition-colors">
+                      <QrCode className="w-4 h-4 text-emerald-600" />
+                      Consultar en DIAN
+                      <ExternalLink className="w-3 h-3" />
+                    </button>
+                  </a>
+                )}
+                {invoiceResult.links?.public_url && (
+                  <a
+                    href={invoiceResult.links.public_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <button className="w-full border border-gray-300 text-black font-semibold text-xs py-3 rounded-full flex items-center justify-center gap-1.5 hover:bg-gray-50 transition-colors">
+                      <ReceiptText className="w-4 h-4 text-blue-600" />
+                      Ver factura web
+                      <ExternalLink className="w-3 h-3" />
+                    </button>
+                  </a>
+                )}
               </div>
-            </CardContent>
-          </Card>
+
+              <Link href="/facturas">
+                <button className="w-full text-gray-600 hover:text-black font-semibold text-sm py-2 transition-colors">
+                  Ir al historial de todas las facturas →
+                </button>
+              </Link>
+
+              <Link href="/">
+                <button
+                  onClick={() => clearCart()}
+                  className="w-full text-gray-500 hover:text-black text-xs py-1 transition-colors"
+                >
+                  ← Seguir comprando en la tienda
+                </button>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  // ─── Checkout form ───────────────────────────────────────────────────────
+  // ─── Formulario de Checkout ───────────────────────────────────────────────
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
@@ -290,7 +274,10 @@ export default function CheckoutPage() {
         throw new Error(res.data.error || "Error generando factura");
       }
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { error?: string; message?: string; details?: unknown } }; message?: string };
+      const error = err as {
+        response?: { data?: { error?: string; message?: string } };
+        message?: string;
+      };
       const errorMsg =
         error?.response?.data?.message ||
         error?.response?.data?.error ||
@@ -303,239 +290,274 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-12 px-4">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 flex items-center gap-4">
+    <div className="min-h-screen py-10 sm:py-14 px-4 bg-[#F2F0F1]">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8 flex items-center gap-3">
           <Link href="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
+            <button className="p-2 rounded-full bg-white border border-gray-300 hover:bg-gray-100 transition-colors">
+              <ArrowLeft className="w-5 h-5 text-black" />
+            </button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Checkout</h1>
-            <p className="text-muted-foreground text-sm">
-              Completa tus datos para emitir la factura electrónica DIAN
+            <h1 className="text-3xl font-extrabold text-black font-sans">
+              Checkout & Facturación DIAN
+            </h1>
+            <p className="text-gray-500 text-sm mt-0.5">
+              Ingresa tus datos para la emisión de la factura electrónica oficial
             </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-            {/* Left: Forms */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* Customer data */}
-              <Card className="bg-card border-border">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <User className="w-4 h-4 text-primary" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Form Column (Left 7 cols) */}
+            <div className="lg:col-span-7 space-y-6">
+              {/* Card: Datos Personales */}
+              <div className="bg-white rounded-[24px] p-6 sm:p-8 border border-gray-200 shadow-sm space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                  <User className="w-5 h-5 text-black" />
+                  <h2 className="font-bold text-lg text-black">
                     Datos del comprador (Facturación)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="names">Nombre completo *</Label>
-                      <Input
-                        id="names"
-                        placeholder="Juan Pérez"
-                        {...register("names")}
-                        className={errors.names ? "border-destructive" : ""}
-                      />
-                      {errors.names && (
-                        <p className="text-xs text-destructive">{errors.names.message}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="identification">Cédula de ciudadanía / NIT *</Label>
-                      <Input
-                        id="identification"
-                        placeholder="1020304050"
-                        {...register("identification")}
-                        className={errors.identification ? "border-destructive" : ""}
-                      />
-                      {errors.identification && (
-                        <p className="text-xs text-destructive">
-                          {errors.identification.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Correo electrónico *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="juan.perez@ejemplo.com"
-                        {...register("email")}
-                        className={errors.email ? "border-destructive" : ""}
-                      />
-                      {errors.email && (
-                        <p className="text-xs text-destructive">{errors.email.message}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Teléfono / Celular *</Label>
-                      <Input
-                        id="phone"
-                        placeholder="3001234567"
-                        {...register("phone")}
-                        className={errors.phone ? "border-destructive" : ""}
-                      />
-                      {errors.phone && (
-                        <p className="text-xs text-destructive">{errors.phone.message}</p>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </h2>
+                </div>
 
-              {/* Address */}
-              <Card className="bg-card border-border">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <MapPin className="w-4 h-4 text-primary" />
-                    Ubicación y Dirección
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Dirección *</Label>
-                    <Input
-                      id="address"
-                      placeholder="Carrera 7 # 71-21, Oficina 402"
-                      {...register("address")}
-                      className={errors.address ? "border-destructive" : ""}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-700">
+                      Nombre completo *
+                    </label>
+                    <input
+                      placeholder="Juan Pérez"
+                      {...register("names")}
+                      className={`w-full bg-[#F0F0F0] text-black text-sm rounded-full px-4 py-3 outline-none focus:ring-2 focus:ring-black/20 transition-all ${
+                        errors.names ? "ring-2 ring-red-500" : ""
+                      }`}
                     />
-                    {errors.address && (
-                      <p className="text-xs text-destructive">{errors.address.message}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="municipality_id">Municipio (DIAN) *</Label>
-                    <Select
-                      defaultValue="11001"
-                      onValueChange={(val) => setValue("municipality_id", val as string)}
-                    >
-                      <SelectTrigger id="municipality_id">
-                        <SelectValue placeholder="Selecciona municipio" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MUNICIPIOS.map((m) => (
-                          <SelectItem key={m.id} value={m.id}>
-                            {m.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.municipality_id && (
-                      <p className="text-xs text-destructive">
-                        {errors.municipality_id.message}
+                    {errors.names && (
+                      <p className="text-xs text-red-500 font-medium pl-2">
+                        {errors.names.message}
                       </p>
                     )}
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Payment */}
-              <Card className="bg-card border-border">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <CreditCard className="w-4 h-4 text-primary" />
-                    Método de Pago
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Select
-                    defaultValue="10"
-                    onValueChange={(val) => setValue("payment_method", val as string)}
-                  >
-                    <SelectTrigger id="payment_method">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">Efectivo (Código 10)</SelectItem>
-                      <SelectItem value="42">Consignación bancaria (Código 42)</SelectItem>
-                      <SelectItem value="48">Tarjeta de Crédito (Código 48)</SelectItem>
-                      <SelectItem value="49">Transferencia Electrónica PSE (Código 49)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </CardContent>
-              </Card>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-700">
+                      Cédula de ciudadanía o NIT *
+                    </label>
+                    <input
+                      placeholder="1020304050"
+                      {...register("identification")}
+                      className={`w-full bg-[#F0F0F0] text-black text-sm rounded-full px-4 py-3 outline-none focus:ring-2 focus:ring-black/20 transition-all ${
+                        errors.identification ? "ring-2 ring-red-500" : ""
+                      }`}
+                    />
+                    {errors.identification && (
+                      <p className="text-xs text-red-500 font-medium pl-2">
+                        {errors.identification.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-700">
+                      Correo electrónico *
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="juan.perez@ejemplo.com"
+                      {...register("email")}
+                      className={`w-full bg-[#F0F0F0] text-black text-sm rounded-full px-4 py-3 outline-none focus:ring-2 focus:ring-black/20 transition-all ${
+                        errors.email ? "ring-2 ring-red-500" : ""
+                      }`}
+                    />
+                    {errors.email && (
+                      <p className="text-xs text-red-500 font-medium pl-2">
+                        {errors.email.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-700">
+                      Teléfono de contacto *
+                    </label>
+                    <input
+                      placeholder="3001234567"
+                      {...register("phone")}
+                      className={`w-full bg-[#F0F0F0] text-black text-sm rounded-full px-4 py-3 outline-none focus:ring-2 focus:ring-black/20 transition-all ${
+                        errors.phone ? "ring-2 ring-red-500" : ""
+                      }`}
+                    />
+                    {errors.phone && (
+                      <p className="text-xs text-red-500 font-medium pl-2">
+                        {errors.phone.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Card: Dirección y Municipio */}
+              <div className="bg-white rounded-[24px] p-6 sm:p-8 border border-gray-200 shadow-sm space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                  <MapPin className="w-5 h-5 text-black" />
+                  <h2 className="font-bold text-lg text-black">
+                    Dirección y ubicación tributaria
+                  </h2>
+                </div>
+
+                <div className="space-y-4 pt-2">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-700">
+                      Dirección de residencia o empresa *
+                    </label>
+                    <input
+                      placeholder="Carrera 7 # 71-21, Oficina 402"
+                      {...register("address")}
+                      className={`w-full bg-[#F0F0F0] text-black text-sm rounded-full px-4 py-3 outline-none focus:ring-2 focus:ring-black/20 transition-all ${
+                        errors.address ? "ring-2 ring-red-500" : ""
+                      }`}
+                    />
+                    {errors.address && (
+                      <p className="text-xs text-red-500 font-medium pl-2">
+                        {errors.address.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-700">
+                      Municipio DIAN *
+                    </label>
+                    <select
+                      defaultValue="11001"
+                      onChange={(e) => setValue("municipality_id", e.target.value)}
+                      className="w-full bg-[#F0F0F0] text-black text-sm rounded-full px-4 py-3 outline-none focus:ring-2 focus:ring-black/20 transition-all cursor-pointer"
+                    >
+                      {MUNICIPIOS.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card: Método de Pago */}
+              <div className="bg-white rounded-[24px] p-6 sm:p-8 border border-gray-200 shadow-sm space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                  <CreditCard className="w-5 h-5 text-black" />
+                  <h2 className="font-bold text-lg text-black">Método de pago</h2>
+                </div>
+
+                <select
+                  defaultValue="10"
+                  onChange={(e) => setValue("payment_method", e.target.value)}
+                  className="w-full bg-[#F0F0F0] text-black text-sm rounded-full px-4 py-3 outline-none focus:ring-2 focus:ring-black/20 transition-all cursor-pointer"
+                >
+                  <option value="10">Efectivo (Código 10 - Factus DIAN)</option>
+                  <option value="42">Consignación bancaria (Código 42)</option>
+                  <option value="48">Tarjeta de Crédito (Código 48)</option>
+                  <option value="49">Transferencia electrónica PSE (Código 49)</option>
+                </select>
+              </div>
             </div>
 
-            {/* Right: Order summary */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card className="bg-card border-border sticky top-24">
-                <CardHeader>
-                  <CardTitle className="text-base">Resumen del Pedido</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Items */}
-                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                    {items.map(({ product, quantity }) => (
-                      <div
-                        key={product.id}
-                        className="flex justify-between text-sm py-2 border-b border-border/40 last:border-0"
-                      >
-                        <div className="min-w-0 mr-2">
-                          <p className="font-medium truncate">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {quantity} x {formatCOP(product.price)}
+            {/* Summary Column (Right 5 cols) */}
+            <div className="lg:col-span-5 space-y-6">
+              <div className="bg-white rounded-[24px] p-6 sm:p-8 border border-gray-200 shadow-sm sticky top-28 space-y-6">
+                <h2 className="font-extrabold text-xl text-black">
+                  Resumen del pedido
+                </h2>
+
+                {/* Items */}
+                <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                  {items.map(({ product, quantity }) => (
+                    <div
+                      key={product.id}
+                      className="flex items-center justify-between gap-3 pb-3 border-b border-gray-100 last:border-0"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-12 h-12 rounded-[10px] bg-[#F0EEED] relative shrink-0 p-1">
+                          {product.image ? (
+                            <Image
+                              src={product.image}
+                              alt={product.name}
+                              fill
+                              className="object-contain p-1"
+                            />
+                          ) : (
+                            <div className="text-lg flex items-center justify-center h-full">
+                              💻
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-black truncate">
+                            {product.name}
+                          </p>
+                          <p className="text-[11px] text-gray-500 font-medium">
+                            Cant: {quantity}
                           </p>
                         </div>
-                        <span className="font-medium shrink-0">
-                          {formatCOP(product.price * quantity)}
-                        </span>
                       </div>
-                    ))}
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Subtotal neto</span>
-                      <span>{formatCOP(total)}</span>
+                      <span className="text-xs font-extrabold text-black shrink-0">
+                        {formatCOP(product.price * quantity)}
+                      </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">IVA (19.00%)</span>
-                      <span className="text-cyan">{formatCOP(total * 0.19)}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Total a Facturar</span>
-                      <span className="text-primary">{formatCOP(totalWithIVA)}</span>
-                    </div>
-                  </div>
+                  ))}
+                </div>
 
-                  {/* DIAN badge */}
-                  <div className="flex items-start gap-2.5 text-xs text-muted-foreground bg-muted/40 rounded-lg p-3 border border-border/50">
-                    <Shield className="w-4 h-4 text-green-400 shrink-0 mt-0.5" />
-                    <span>
-                      Facturación Electrónica oficial en tiempo real con <strong>Factus Sandbox</strong> conectada a la <strong>DIAN</strong>.
-                    </span>
-                  </div>
+                <Separator className="bg-gray-200" />
 
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full gradient-brand text-white border-0 gap-2 py-6 text-base font-semibold"
-                    id="submit-checkout"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Validando con la DIAN...
-                      </>
-                    ) : (
-                      <>
-                        <ReceiptText className="w-5 h-5" />
-                        Pagar y Emitir Factura DIAN
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
+                {/* Breakdown */}
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal neto</span>
+                    <span className="font-semibold text-black">{formatCOP(total)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>IVA (19.00%)</span>
+                    <span className="font-semibold text-black">{formatCOP(total * 0.19)}</span>
+                  </div>
+                  <Separator className="bg-gray-200" />
+                  <div className="flex justify-between items-center text-lg font-extrabold text-black pt-1">
+                    <span>Total a pagar</span>
+                    <span className="text-2xl">{formatCOP(totalWithIVA)}</span>
+                  </div>
+                </div>
+
+                {/* Security and DIAN guarantee badge */}
+                <div className="bg-emerald-50 border border-emerald-200 rounded-[16px] p-4 flex items-start gap-3 text-xs text-emerald-800">
+                  <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold">Facturación Electrónica DIAN</p>
+                    <p className="text-[11px] text-emerald-700 mt-0.5">
+                      Validación instantánea con CUFE y código QR oficial emitido por Factus.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-black text-white font-semibold text-base py-4 rounded-full flex items-center justify-center gap-2 hover:bg-black/85 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                  id="submit-checkout"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Validando con la DIAN...
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-4 h-4" />
+                      Pagar y emitir factura DIAN
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </form>

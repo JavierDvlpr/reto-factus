@@ -1,68 +1,71 @@
-import { PRODUCTS, CATEGORIES } from "@/lib/products";
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Catálogo de Productos — TechStore CO",
-  description: "Explora toda nuestra gama de productos tecnológicos en TechStore CO",
-};
+import { useState } from "react";
+import { PRODUCTS, CATEGORIES } from "@/lib/products";
+import ProductCard from "@/components/ProductCard";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function ProductosPage() {
+  const [activeCategory, setActiveCategory] = useState("Todos");
+
+  const filtered =
+    activeCategory === "Todos"
+      ? PRODUCTS
+      : PRODUCTS.filter((p) => p.category === activeCategory);
+
   return (
-    <div className="min-h-screen pt-24 pb-12 px-4">
+    <div className="min-h-screen py-10 sm:py-14 px-4 bg-[#F2F0F1]">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold gradient-text">Catálogo completo</h1>
-          <p className="text-muted-foreground mt-2">
-            {PRODUCTS.length} productos disponibles en {CATEGORIES.length - 1} categorías
-          </p>
+        {/* Header */}
+        <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <Link href="/">
+              <button className="p-2 rounded-full bg-white border border-gray-300 hover:bg-gray-100 transition-colors">
+                <ArrowLeft className="w-5 h-5 text-black" />
+              </button>
+            </Link>
+            <div>
+              <h1 className="text-3xl font-extrabold text-black font-sans">
+                Catálogo completo de tecnología
+              </h1>
+              <p className="text-gray-500 text-sm mt-0.5">
+                {PRODUCTS.length} productos certificados con factura electrónica DIAN
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {PRODUCTS.map((p) => (
-            <div
-              key={p.id}
-              className="glass border border-border/50 rounded-xl p-5 hover:border-primary/30 transition-colors"
+        {/* Category Pills Filter */}
+        <div className="flex items-center gap-2.5 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all shrink-0 ${
+                activeCategory === cat
+                  ? "bg-black text-white shadow-md"
+                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+              }`}
             >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium text-primary bg-primary/10 rounded-md px-2 py-0.5">
-                      {p.category}
-                    </span>
-                    {p.badge && (
-                      <span className="text-xs text-muted-foreground">{p.badge}</span>
-                    )}
-                  </div>
-                  <h2 className="font-semibold text-sm">{p.name}</h2>
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                    {p.description}
-                  </p>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="font-bold text-primary">
-                    {new Intl.NumberFormat("es-CO", {
-                      style: "currency",
-                      currency: "COP",
-                      minimumFractionDigits: 0,
-                    }).format(p.price)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{p.stock} en stock</p>
-                </div>
-              </div>
-
-              {/* Specs */}
-              <div className="mt-3 pt-3 border-t border-border/50 grid grid-cols-2 gap-1">
-                {Object.entries(p.specs)
-                  .slice(0, 4)
-                  .map(([key, val]) => (
-                    <div key={key} className="text-xs">
-                      <span className="text-muted-foreground">{key}: </span>
-                      <span className="text-foreground/80">{val}</span>
-                    </div>
-                  ))}
-              </div>
-            </div>
+              {cat}
+            </button>
           ))}
+        </div>
+
+        {/* Products Grid */}
+        <div className="bg-white rounded-[32px] p-6 sm:p-10 border border-gray-200 shadow-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+            {filtered.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+
+          {filtered.length === 0 && (
+            <div className="text-center py-20 text-gray-500">
+              No se encontraron productos en esta categoría.
+            </div>
+          )}
         </div>
       </div>
     </div>

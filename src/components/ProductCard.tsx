@@ -2,20 +2,9 @@
 
 import { Product, formatCOP } from "@/lib/products";
 import { useCartStore } from "@/lib/store";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { ShoppingCart, Star, Zap } from "lucide-react";
+import { Star, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
-
-const PRODUCT_EMOJIS: Record<string, string> = {
-  Laptops: "💻",
-  Monitores: "🖥️",
-  Audio: "🎧",
-  Periféricos: "🖱️",
-  Tablets: "📱",
-  Componentes: "⚡",
-};
+import Image from "next/image";
 
 interface ProductCardProps {
   product: Product;
@@ -23,105 +12,88 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem);
-  const emoji = PRODUCT_EMOJIS[product.category] || "📦";
-  const discount = product.originalPrice
-    ? Math.round((1 - product.price / product.originalPrice) * 100)
-    : 0;
 
-  const handleAdd = () => {
+  const handleAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
     addItem(product);
     toast.success(`${product.name} agregado al carrito`, {
       description: formatCOP(product.price),
     });
   };
 
-  return (
-    <Card className="card-hover group relative flex flex-col bg-card border-border overflow-hidden">
-      {/* Badge */}
-      {product.badge && (
-        <div className="absolute top-3 left-3 z-10">
-          <Badge className="gradient-brand text-white border-0 text-xs">
-            {product.badge}
-          </Badge>
-        </div>
-      )}
-      {discount > 0 && (
-        <div className="absolute top-3 right-3 z-10">
-          <Badge variant="destructive" className="text-xs">
-            -{discount}%
-          </Badge>
-        </div>
-      )}
+  const discount = product.originalPrice
+    ? Math.round((1 - product.price / product.originalPrice) * 100)
+    : null;
 
-      {/* Image area */}
-      <div className="relative h-48 bg-gradient-to-br from-muted to-accent flex items-center justify-center overflow-hidden">
-        <div className="text-7xl transition-transform duration-300 group-hover:scale-110 select-none">
-          {emoji}
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent" />
+  return (
+    <div className="group flex flex-col gap-3">
+      {/* Image container */}
+      <div className="relative aspect-square w-full rounded-[20px] bg-[#F0EEED] overflow-hidden flex items-center justify-center p-4">
+        {product.image ? (
+          <Image
+            src={product.image}
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="text-5xl select-none">💻</div>
+        )}
+
+        {/* Quick add floating button on hover */}
+        <button
+          onClick={handleAdd}
+          className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-black text-white flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
+          title="Agregar al carrito"
+          aria-label={`Agregar ${product.name} al carrito`}
+        >
+          <ShoppingBag className="w-4 h-4" />
+        </button>
       </div>
 
-      {/* Content */}
-      <div className="flex flex-col flex-1 p-4 gap-3">
-        <div>
-          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-            {product.brand}
-          </p>
-          <h3 className="font-semibold text-sm leading-snug mt-0.5 line-clamp-2">
-            {product.name}
-          </h3>
-        </div>
+      {/* Details */}
+      <div className="space-y-1">
+        <h3 className="font-bold text-base text-black line-clamp-1 group-hover:underline cursor-pointer">
+          {product.name}
+        </h3>
 
         {/* Rating */}
-        <div className="flex items-center gap-1.5">
-          <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                className={`w-3 h-3 ${
+                className={`w-4 h-4 ${
                   i < Math.floor(product.rating)
-                    ? "text-yellow-400 fill-yellow-400"
-                    : "text-muted-foreground"
+                    ? "text-[#FFC633] fill-[#FFC633]"
+                    : "text-gray-300 fill-gray-200"
                 }`}
               />
             ))}
           </div>
-          <span className="text-xs text-muted-foreground">
-            {product.rating} ({product.reviews.toLocaleString()})
+          <span className="text-xs text-gray-500 font-medium">
+            {product.rating}/<span className="text-gray-400">5</span>
           </span>
         </div>
 
-        {/* Price */}
-        <div className="flex items-end gap-2 mt-auto">
-          <span className="text-lg font-bold text-primary">
+        {/* Prices */}
+        <div className="flex items-center gap-2.5 pt-1">
+          <span className="text-lg sm:text-xl font-extrabold text-black">
             {formatCOP(product.price)}
           </span>
           {product.originalPrice && (
-            <span className="text-xs text-muted-foreground line-through mb-0.5">
+            <span className="text-sm sm:text-base font-bold text-gray-400 line-through">
               {formatCOP(product.originalPrice)}
             </span>
           )}
+          {discount && (
+            <span className="text-xs font-semibold text-[#FF3333] bg-[#FF3333]/10 px-2.5 py-0.5 rounded-full">
+              -{discount}%
+            </span>
+          )}
         </div>
-
-        {/* Stock */}
-        {product.stock <= 5 && (
-          <p className="text-xs text-amber-400 flex items-center gap-1">
-            <Zap className="w-3 h-3" />
-            Solo {product.stock} en stock
-          </p>
-        )}
-
-        {/* CTA */}
-        <Button
-          id={`add-to-cart-${product.id}`}
-          onClick={handleAdd}
-          className="w-full gap-2 gradient-brand text-white border-0 mt-1"
-          size="sm"
-        >
-          <ShoppingCart className="w-4 h-4" />
-          Agregar al carrito
-        </Button>
       </div>
-    </Card>
+    </div>
   );
 }
