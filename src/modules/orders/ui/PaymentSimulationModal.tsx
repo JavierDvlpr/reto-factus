@@ -5,7 +5,7 @@
  * Supports: Credit/Debit Card, PSE, Nequi/Daviplata.
  */
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   CreditCard, Building2, Smartphone, CheckCircle2, XCircle,
   Loader2, Lock, ChevronRight, X
@@ -28,6 +28,7 @@ export default function PaymentSimulationModal({
   open, onClose, onApproved, total,
 }: PaymentSimulationModalProps) {
   const [step, setStep] = useState<Step>("method");
+  const [isPaying, setIsPaying] = useState(false);
   const [method, setMethod] = useState<PaymentMethodCode>("48");
   const [result, setResult] = useState<{ approved: boolean; transactionId: string; message: string } | null>(null);
 
@@ -44,11 +45,17 @@ export default function PaymentSimulationModal({
   // Nequi
   const [nequiPhone, setNequiPhone] = useState("");
 
+  const isSubmitting = useRef(false);
+
   if (!open) return null;
 
   const formattedTotal = Product.formatCOP(total);
 
   const handlePay = async () => {
+    // Anti-double-click: reject concurrent calls
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
+    setIsPaying(true);
     setStep("processing");
     try {
       let paymentData;
@@ -69,6 +76,9 @@ export default function PaymentSimulationModal({
     } catch {
       setStep("details");
       toast.error("Error procesando el pago. Intenta nuevamente.");
+    } finally {
+      isSubmitting.current = false;
+      setIsPaying(false);
     }
   };
 
@@ -100,7 +110,7 @@ export default function PaymentSimulationModal({
               <Lock className="w-5 h-5 text-emerald-400" />
               <div>
                 <h2 className="font-extrabold text-lg">Pasarela de pago</h2>
-                <p className="text-gray-400 text-xs">Simulación segura TechStore CO</p>
+                <p className="text-gray-400 text-xs">Conexión segura · TechStore CO</p>
               </div>
             </div>
             <button onClick={onClose} className="p-2 rounded-full hover:bg-white/20 transition-colors">
@@ -274,7 +284,9 @@ export default function PaymentSimulationModal({
 
               <button
                 onClick={handlePay}
-                className="w-full bg-black text-white font-semibold py-3.5 rounded-full hover:bg-gray-900 transition-all flex items-center justify-center gap-2 mt-2"
+                disabled={isPaying}
+                className="w-full bg-black text-white font-semibold py-3.5 rounded-full hover:bg-gray-900 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98]"
+                aria-label={`Confirmar pago de ${formattedTotal}`}
               >
                 <Lock className="w-4 h-4" />
                 Pagar {formattedTotal}

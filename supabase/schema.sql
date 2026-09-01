@@ -141,7 +141,56 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function handle_new_user();
 
--- ─── Stock Decrement Function ─────────────────────────────────────────────────
+-- ─── Atomic Stock Reservation (prevents race conditions / overselling) ────────
+-- Uses SELECT FOR UPDATE to hold an exclusive row lock while checking and
+-- decrementing stock. If two requests arrive simultaneously only one will
+-- succeed; the other waits for the lock and then reads the already-decremented
+-- stock value, failing cleanly with a JSON error payload.
+create or replace function reserve_and_decrement_stock(
+  p_product_id uuid,
+  p_quantity    integer
+)
+returns json
+language plpgsql
+as $$
+declare
+  v_stock integer;
+begin
+  -- Lock the row exclusively for this transaction
+  select stock
+    into v_stock
+    from public.products
+   where id = p_product_id
+     for update;
+
+  if not found then
+    return json_build_object(
+      'success', false,
+      'error',   'Producto no encontrado',
+      'available', 0
+    );
+  end if;
+
+  if v_stock < p_quantity then
+    return json_build_object(
+      'success',   false,
+      'error',     'Stock insuficiente. Solo quedan ' || v_stock || ' unidades disponibles.',
+      'available', v_stock
+    );
+  end if;
+
+  update public.products
+     set stock = stock - p_quantity
+   where id = p_product_id;
+
+  return json_build_object(
+    'success',   true,
+    'remaining', v_stock - p_quantity
+  );
+end;
+$$;
+
+-- Keep the old helper for backwards compat (admin stock adjustments still use it)
 create or replace function decrement_stock(p_product_id uuid, p_quantity integer)
 returns void language plpgsql as $$
 begin
@@ -153,6 +202,7 @@ begin
   end if;
 end;
 $$;
+
 
 -- ─── Row Level Security ───────────────────────────────────────────────────────
 alter table public.profiles   enable row level security;
