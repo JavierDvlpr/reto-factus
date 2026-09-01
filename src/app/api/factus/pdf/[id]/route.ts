@@ -7,8 +7,12 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const pdfBase64 = await downloadInvoicePDF(Number(id));
-    return NextResponse.json({ success: true, pdf: pdfBase64 });
+    const data = await downloadInvoicePDF(id);
+    return NextResponse.json({
+      success: true,
+      pdf: data.pdf_base_64_encoded,
+      fileName: data.file_name,
+    });
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Error descargando PDF";
