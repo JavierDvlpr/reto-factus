@@ -18,17 +18,14 @@ import {
   CreditCard,
   Loader2,
   CheckCircle2,
-  Download,
   ArrowLeft,
-  ReceiptText,
   ShieldCheck,
   User,
-  MapPin,
-  ExternalLink,
-  QrCode,
   Lock,
   ShoppingBag,
   LogIn,
+  Package,
+  MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
@@ -107,23 +104,8 @@ export default function CheckoutPage() {
     );
   }
 
-  // ─── Invoice Issued Success Screen ──────────────────────────────────────────
+  // ─── Order Confirmed Success Screen ─────────────────────────────────────────
   if (invoiceResult) {
-    const handleDownload = async () => {
-      setDownloadingPdf(true);
-      const res = await billingService.downloadInvoicePDF(invoiceResult.number);
-      if (res.success) {
-        const link = document.createElement("a");
-        link.href = `data:application/pdf;base64,${res.data}`;
-        link.download = `factura-${invoiceResult.number}.pdf`;
-        link.click();
-        toast.success("Factura descargada exitosamente en PDF");
-      } else {
-        toast.error("Error al descargar el PDF de la factura");
-      }
-      setDownloadingPdf(false);
-    };
-
     return (
       <div className="min-h-screen py-16 px-4 bg-[#F2F0F1]">
         <div className="max-w-xl mx-auto">
@@ -134,33 +116,29 @@ export default function CheckoutPage() {
 
             <div>
               <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
-                Validada oficialmente por la DIAN
+                Pago confirmado
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-black mt-3">
-                ¡Factura electrónica emitida!
+                ¡Pedido realizado con éxito!
               </h2>
               <p className="text-gray-500 text-sm mt-1">
-                Comprobante generado en tiempo real vía API Factus V2
+                Recibirás un correo de confirmación con los detalles de tu envío.
               </p>
             </div>
 
-            {/* Voucher Details */}
+            {/* Order summary */}
             <div className="bg-[#F0EEED] rounded-[20px] p-6 space-y-3 text-left">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600 font-medium">Número de factura</span>
-                <span className="font-extrabold text-black font-mono">{invoiceResult.number}</span>
+                <span className="text-gray-600 font-medium">Número de pedido</span>
+                <span className="font-extrabold text-black font-mono">#{invoiceResult.number}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600 font-medium">Código de referencia</span>
+                <span className="text-gray-600 font-medium">Referencia</span>
                 <span className="font-mono text-xs text-gray-700">{invoiceResult.reference_code}</span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600 font-medium">Estado DIAN</span>
-                <Badge className="bg-emerald-600 text-white text-[11px]">Validada UBL 2.1</Badge>
               </div>
               {invoiceResult.totals?.total && (
                 <div className="flex justify-between items-center text-sm border-t border-gray-300/60 pt-2">
-                  <span className="text-black font-bold">Total facturado (con IVA)</span>
+                  <span className="text-black font-bold">Total pagado (IVA incluido)</span>
                   <span className="font-extrabold text-base text-black">
                     {formatCOP(Number(invoiceResult.totals.total))}
                   </span>
@@ -168,51 +146,25 @@ export default function CheckoutPage() {
               )}
             </div>
 
-            {/* CUFE */}
-            {invoiceResult.cufe && (
-              <div className="bg-gray-50 border border-gray-200 rounded-[16px] p-4 text-left space-y-1">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700">
-                  <ReceiptText className="w-3.5 h-3.5 text-emerald-600" />
-                  CUFE (Código Único de Factura Electrónica)
-                </div>
-                <p className="text-[10px] font-mono text-gray-500 break-all leading-tight">
-                  {invoiceResult.cufe}
-                </p>
+            {/* Delivery info */}
+            <div className="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-2xl p-4 text-left">
+              <Package className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-bold text-blue-800">En preparación</p>
+                <p className="text-xs text-blue-600 mt-0.5">Tu pedido será despachado en 1-2 días hábiles. Recibirás el número de guía por correo.</p>
               </div>
-            )}
-
-            {/* QR / DIAN link */}
-            {invoiceResult.links?.public_url && (
-              <a
-                href={invoiceResult.links.public_url}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-700 hover:text-emerald-800 underline"
-              >
-                <QrCode className="w-4 h-4" />
-                Verificar comprobante en portal oficial DIAN / Factus
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            )}
+            </div>
 
             {/* Actions */}
             <div className="space-y-3 pt-2">
-              <button
-                onClick={handleDownload}
-                disabled={downloadingPdf}
-                className="w-full bg-black text-white font-semibold py-4 rounded-full hover:bg-black/85 transition-colors flex items-center justify-center gap-2 shadow-md disabled:opacity-60 active:scale-[0.98]"
-              >
-                {downloadingPdf ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Download className="w-5 h-5" />
-                )}
-                Descargar factura en PDF
-              </button>
-
+              <Link href="/productos">
+                <button className="w-full bg-black text-white font-semibold py-4 rounded-full hover:bg-black/85 transition-colors shadow-md active:scale-[0.98]">
+                  Seguir comprando
+                </button>
+              </Link>
               <Link href="/">
                 <button className="w-full py-3.5 rounded-full border border-gray-300 text-sm font-semibold text-black hover:bg-gray-50 transition-colors">
-                  Volver a la tienda
+                  Volver al inicio
                 </button>
               </Link>
             </div>
@@ -295,13 +247,13 @@ export default function CheckoutPage() {
                 Finalizar compra
               </h1>
               <p className="text-gray-500 text-xs sm:text-sm">
-                Facturación electrónica DIAN oficial con Factus API V2
+                Compra segura · Envío confirmado
               </p>
             </div>
           </div>
           <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            Emisión UBL 2.1 en tiempo real
+            Pago 100% seguro y encriptado
           </div>
         </div>
 
@@ -337,7 +289,7 @@ export default function CheckoutPage() {
           <div className="lg:col-span-7 bg-white rounded-[32px] p-6 sm:p-10 border border-gray-200 shadow-sm space-y-6">
             <div className="flex items-center gap-2 border-b border-gray-100 pb-4">
               <User className="w-5 h-5 text-black" />
-              <h2 className="text-lg font-bold text-black">Datos del comprador para la DIAN</h2>
+              <h2 className="text-lg font-bold text-black">Datos de envío y facturación</h2>
             </div>
 
             <form id="checkout-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
@@ -361,7 +313,7 @@ export default function CheckoutPage() {
               </div>
 
               <div className="space-y-1">
-                <label className={labelClass}>Correo electrónico (Factura DIAN) *</label>
+                <label className={labelClass}>Correo electrónico *</label>
                 <input {...register("email")} type="email" placeholder="correo@empresa.com" className={inputClass} />
                 {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
               </div>
@@ -373,7 +325,7 @@ export default function CheckoutPage() {
               </div>
 
               <div className="space-y-1">
-                <label className={labelClass}>Municipio / Ciudad (Código DIAN) *</label>
+                <label className={labelClass}>Ciudad / Municipio *</label>
                 <select {...register("municipality_id")} className={inputClass}>
                   {MUNICIPIOS.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -449,16 +401,16 @@ export default function CheckoutPage() {
                 ) : (
                   <CreditCard className="w-5 h-5" />
                 )}
-                Proceder al pago y facturación DIAN
+                Confirmar y pagar
               </button>
 
               <div className="text-center space-y-1">
                 <div className="flex items-center justify-center gap-1.5 text-xs text-gray-500 font-medium">
                   <Lock className="w-3.5 h-3.5 text-emerald-600" />
-                  Transacción 100% simulada y protegida
+                  Transacción protegida con encriptación SSL
                 </div>
                 <p className="text-[10px] text-gray-400">
-                  Al completar el pago, Factus API genera el CUFE y emite la factura UBL 2.1 ante la DIAN.
+                  Tus datos de pago están protegidos. Nunca almacenamos tu información bancaria.
                 </p>
               </div>
             </div>
@@ -484,8 +436,8 @@ export default function CheckoutPage() {
             setPaymentModalOpen(true);
           }
         }}
-        title="Identificación de Comprador"
-        subtitle="Ingresa con tu cuenta o regístrate para asociar tu factura electrónica DIAN."
+        title="Identifícate para continuar"
+        subtitle="Inicia sesión o regístrate para guardar tu pedido y datos de envío."
       />
     </div>
   );
