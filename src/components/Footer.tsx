@@ -93,14 +93,14 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* Column: Recursos internos */}
+            {/* Column: Legal & DIAN */}
             <div className="col-span-1 md:col-span-2 space-y-3">
-              <h4 className="font-bold text-sm text-black tracking-wider">Recursos</h4>
+              <h4 className="font-bold text-sm text-black tracking-wider">Legal & DIAN</h4>
               <ul className="space-y-2.5 text-sm text-gray-500">
-                <li><Link href="/admin" className="hover:text-black transition-colors font-semibold text-black">Panel Admin</Link></li>
-                <li><Link href="/admin/productos" className="hover:text-black transition-colors">Inventario en vivo</Link></li>
-                <li><Link href="/admin/pedidos" className="hover:text-black transition-colors">Crear pedido</Link></li>
-                <li><Link href="/admin/facturas" className="hover:text-black transition-colors">Historial de ventas</Link></li>
+                <li><span className="text-gray-500">Facturación Electrónica DIAN</span></li>
+                <li><span className="text-gray-500">Términos y Condiciones</span></li>
+                <li><span className="text-gray-500">Política de Garantías</span></li>
+                <li><span className="text-gray-500">Tratamiento de Datos</span></li>
               </ul>
             </div>
           </div>
