@@ -181,6 +181,26 @@ export class Product {
       isActive: true,
     });
   }
+
+  toLegacy() {
+    return {
+      id: this.id,
+      name: this.name,
+      brand: this.brand,
+      price: this.price,
+      originalPrice: this.originalPrice ?? undefined,
+      category: this.category,
+      description: this.description,
+      specs: this.specs,
+      image: this.image ?? "",
+      stock: this.stock,
+      rating: this.rating,
+      reviews: this.reviewsCount,
+      badge: this.badge ?? undefined,
+      isNewArrival: this.isNewArrival,
+      isTopSelling: this.isTopSelling,
+    };
+  }
 }
 
 // ─── Product Categories ────────────────────────────────────────────────────────

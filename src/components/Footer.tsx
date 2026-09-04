@@ -65,9 +65,9 @@ export default function Footer() {
               <h4 className="font-bold text-sm text-black tracking-wider">Empresa</h4>
               <ul className="space-y-2.5 text-sm text-gray-500">
                 <li><Link href="/" className="hover:text-black transition-colors">Acerca de</Link></li>
-                <li><Link href="/" className="hover:text-black transition-colors">Nuestras marcas</Link></li>
+                <li><Link href="/blog" className="hover:text-black transition-colors font-medium text-black">Blog & Guías</Link></li>
                 <li><Link href="/productos" className="hover:text-black transition-colors">Catálogo</Link></li>
-                <li><Link href="/" className="hover:text-black transition-colors">Trabaja con nosotros</Link></li>
+                <li><Link href="/" className="hover:text-black transition-colors">Nuestras marcas</Link></li>
               </ul>
             </div>
 
