@@ -24,8 +24,10 @@ export class SupabaseProductRepository implements IProductRepository {
         query = query.eq("category", filters.category);
       }
       const { data, error } = await query;
-      if (error) throw error;
-      return (data ?? []).map(Product.fromDB);
+      if (error || !data || data.length === 0) {
+        return this._legacyFindAll(filters);
+      }
+      return data.map(Product.fromDB);
     } catch {
       return this._legacyFindAll(filters);
     }
@@ -38,8 +40,8 @@ export class SupabaseProductRepository implements IProductRepository {
     try {
       const { data, error } = await supabase
         .from("products").select("*").eq("id", id).single();
-      if (error) return this._legacyFindById(id);
-      return data ? Product.fromDB(data) : null;
+      if (error || !data) return this._legacyFindById(id);
+      return Product.fromDB(data);
     } catch {
       return this._legacyFindById(id);
     }
@@ -50,9 +52,12 @@ export class SupabaseProductRepository implements IProductRepository {
       return LEGACY_PRODUCTS.filter((p) => p.isNewArrival).map(Product.fromLegacy);
     }
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("products").select("*").eq("is_new_arrival", true).eq("is_active", true).order("created_at", { ascending: false });
-      return (data ?? []).map(Product.fromDB);
+      if (error || !data || data.length === 0) {
+        return LEGACY_PRODUCTS.filter((p) => p.isNewArrival).map(Product.fromLegacy);
+      }
+      return data.map(Product.fromDB);
     } catch {
       return LEGACY_PRODUCTS.filter((p) => p.isNewArrival).map(Product.fromLegacy);
     }
@@ -63,9 +68,12 @@ export class SupabaseProductRepository implements IProductRepository {
       return LEGACY_PRODUCTS.filter((p) => p.isTopSelling).map(Product.fromLegacy);
     }
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("products").select("*").eq("is_top_selling", true).eq("is_active", true).order("created_at", { ascending: false });
-      return (data ?? []).map(Product.fromDB);
+      if (error || !data || data.length === 0) {
+        return LEGACY_PRODUCTS.filter((p) => p.isTopSelling).map(Product.fromLegacy);
+      }
+      return data.map(Product.fromDB);
     } catch {
       return LEGACY_PRODUCTS.filter((p) => p.isTopSelling).map(Product.fromLegacy);
     }
