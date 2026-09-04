@@ -28,16 +28,18 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
   const { getUser, initialized, initialize, signIn, loading } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
 
   useEffect(() => {
+    setMounted(true);
     initialize();
   }, [initialize]);
 
-  const user = getUser();
-  const isAdmin = user?.isAdmin();
+  const user = mounted ? getUser() : null;
+  const isAdmin = Boolean(mounted && user?.isAdmin());
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,8 +63,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { href: "/admin/facturas", label: "Facturas DIAN", icon: ReceiptText },
   ];
 
+  if (!mounted || !initialized) {
+    return (
+      <div className="min-h-[85vh] flex flex-col items-center justify-center p-4 bg-[#F2F0F1]">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
   // If not admin, show dedicated professional Admin Portal Login
-  if (initialized && !isAdmin) {
+  if (!isAdmin) {
     return (
       <div className="min-h-[85vh] flex flex-col items-center justify-center p-4 bg-[#F2F0F1]">
         <div className="bg-white rounded-[32px] p-8 sm:p-12 max-w-md w-full shadow-2xl border border-gray-200 space-y-6">

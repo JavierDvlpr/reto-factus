@@ -27,16 +27,19 @@ export default function Navbar() {
   const [cartOpen, setCartOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mounted, setMounted] = useState(false);
 
   const totalItems = useCartStore((s) => s.getTotalItems());
   const { getUser, initialized, initialize } = useAuthStore();
 
   useEffect(() => {
+    setMounted(true);
     initialize();
   }, [initialize]);
 
-  const user = getUser();
-  const isAdmin = user?.isAdmin();
+  const user = mounted ? getUser() : null;
+  const isAdmin = Boolean(mounted && user?.isAdmin());
+  const displayTotalItems = mounted ? totalItems : 0;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,9 +122,9 @@ export default function Navbar() {
                 aria-label="Ver carrito de compras"
               >
                 <ShoppingCart className="w-5 h-5" />
-                {totalItems > 0 && (
+                {displayTotalItems > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs bg-black text-white border-0 font-bold">
-                    {totalItems > 9 ? "9+" : totalItems}
+                    {displayTotalItems > 9 ? "9+" : displayTotalItems}
                   </Badge>
                 )}
               </button>

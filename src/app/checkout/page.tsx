@@ -45,12 +45,14 @@ type FormData = z.infer<typeof schema>;
 export default function CheckoutPage() {
   const { items, getTotalPrice, clearCart } = useCartStore();
   const { getUser, initialize, initialized } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     initialize();
   }, [initialize]);
 
-  const user = getUser();
+  const user = mounted ? getUser() : null;
 
   const [loading, setLoading] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -83,6 +85,15 @@ export default function CheckoutPage() {
       if (user.email) setValue("email", user.email);
     }
   }, [user, setValue]);
+
+  // ─── Loading / Hydrating State ──────────────────────────────────────────────
+  if (!mounted) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 py-16">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   // ─── Empty Cart State ───────────────────────────────────────────────────────
   if (items.length === 0 && !invoiceResult) {
