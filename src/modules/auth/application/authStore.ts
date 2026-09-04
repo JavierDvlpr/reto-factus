@@ -23,6 +23,7 @@ interface AuthStore {
   // Actions
   initialize: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<Result<UserClass>>;
+  signUp: (email: string, password: string, fullName: string) => Promise<Result<UserClass>>;
   signOut: () => Promise<void>;
   loginAsAdmin: () => Promise<Result<UserClass>>;
   loginAsCustomer: () => Promise<Result<UserClass>>;
@@ -56,6 +57,16 @@ export const useAuthStore = create<AuthStore>()(
       signIn: async (email, password) => {
         set({ loading: true });
         const result = await authService.signIn(email, password);
+        if (result.success) {
+          set({ userProps: result.data.toJSON() });
+        }
+        set({ loading: false });
+        return result;
+      },
+
+      signUp: async (email, password, fullName) => {
+        set({ loading: true });
+        const result = await authService.signUp(email, password, fullName);
         if (result.success) {
           set({ userProps: result.data.toJSON() });
         }

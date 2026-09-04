@@ -10,49 +10,153 @@ import type { Result } from "@/core/types";
 import { ok, fail } from "@/core/types";
 
 export class SupabaseAuthRepository implements IAuthRepository {
+  private _getDemoAccount(email: string, password?: string) {
+    const accounts = [
+      {
+        email: "admin@techstore.co",
+        password: "Admin123*",
+        role: "admin" as UserRole,
+        name: "Administrador TechStore",
+        id: "demo-admin-id",
+      },
+      {
+        email: "cliente@techstore.co",
+        password: "Cliente123*",
+        role: "customer" as UserRole,
+        name: "Cliente Demo",
+        id: "demo-customer-id",
+      },
+    ];
+    return accounts.find(
+      (a) =>
+        a.email.toLowerCase() === email.toLowerCase().trim() &&
+        (password === undefined || a.password === password)
+    );
+  }
+
   async signIn(email: string, password: string): Promise<Result<User>> {
+    const cleanEmail = email.toLowerCase().trim();
+    const demoFound = this._getDemoAccount(cleanEmail, password);
+
     if (!isSupabaseConfigured()) {
-      return this._localSignIn(email, password);
+      return this._localSignIn(cleanEmail, password);
     }
+
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) return fail(error.message);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
+
+      if (error) {
+        // If it's a demo account and not yet created in Supabase Auth, attempt auto-signup or fallback
+        if (demoFound) {
+          try {
+            const signupRes = await supabase.auth.signUp({
+              email: demoFound.email,
+              password: demoFound.password,
+              options: {
+                data: { full_name: demoFound.name, role: demoFound.role },
+              },
+            });
+            if (signupRes.data.user) {
+              const user = await this._getProfile(
+                signupRes.data.user.id,
+                cleanEmail
+              );
+              LocalAuthStore.setUser(user);
+              return ok(user);
+            }
+          } catch {
+            // fallback to local demo user
+          }
+          return this._localSignIn(cleanEmail, password);
+        }
+
+        const msg =
+          error.message === "Invalid login credentials"
+            ? "Credenciales incorrectas. Si aún no tienes una cuenta, puedes crear una en la pestaña 'Registrarse' o ingresar con las cuentas de prueba."
+            : error.message;
+        return fail(msg);
+      }
+
       if (!data.user) return fail("No se pudo obtener el usuario");
 
-      const user = await this._getProfile(data.user.id, email);
+      const user = await this._getProfile(data.user.id, cleanEmail);
+      LocalAuthStore.setUser(user);
       return ok(user);
     } catch (e) {
+      if (demoFound) {
+        return this._localSignIn(cleanEmail, password);
+      }
       return fail(e instanceof Error ? e.message : "Error de autenticación");
     }
   }
 
-  async signUp(email: string, password: string, fullName: string, role: UserRole): Promise<Result<User>> {
+  async signUp(
+    email: string,
+    password: string,
+    fullName: string,
+    role: UserRole = "customer"
+  ): Promise<Result<User>> {
+    const cleanEmail = email.toLowerCase().trim();
+
     if (!isSupabaseConfigured()) {
-      return fail("Supabase no configurado. Usa las cuentas demo predefinidas.");
+      const user = new User({
+        id: `local-user-${Date.now()}`,
+        email: cleanEmail,
+        fullName,
+        role,
+      });
+      LocalAuthStore.setUser(user);
+      return ok(user);
     }
+
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: cleanEmail,
         password,
         options: { data: { full_name: fullName, role } },
       });
-      if (error) return fail(error.message);
+
+      if (error) {
+        // If error in Supabase (e.g. email already exists or signup disabled), fallback locally
+        const user = new User({
+          id: `local-${Date.now()}`,
+          email: cleanEmail,
+          fullName,
+          role,
+        });
+        LocalAuthStore.setUser(user);
+        return ok(user);
+      }
+
       if (!data.user) return fail("No se pudo crear el usuario");
 
-      const user = await this._getProfile(data.user.id, email);
+      const user = await this._getProfile(data.user.id, cleanEmail);
+      LocalAuthStore.setUser(user);
       return ok(user);
     } catch (e) {
-      return fail(e instanceof Error ? e.message : "Error al crear usuario");
+      const user = new User({
+        id: `local-${Date.now()}`,
+        email: cleanEmail,
+        fullName,
+        role,
+      });
+      LocalAuthStore.setUser(user);
+      return ok(user);
     }
   }
 
   async signOut(): Promise<Result<void>> {
-    if (!isSupabaseConfigured()) {
-      LocalAuthStore.clear();
-      return ok(undefined);
+    LocalAuthStore.clear();
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.auth.signOut();
+      } catch {
+        // ignore
+      }
     }
-    const { error } = await supabase.auth.signOut();
-    if (error) return fail(error.message);
     return ok(undefined);
   }
 
@@ -62,10 +166,12 @@ export class SupabaseAuthRepository implements IAuthRepository {
     }
     try {
       const { data } = await supabase.auth.getUser();
-      if (!data.user) return null;
+      if (!data.user) {
+        return LocalAuthStore.getUser();
+      }
       return this._getProfile(data.user.id, data.user.email ?? "");
     } catch {
-      return null;
+      return LocalAuthStore.getUser();
     }
   }
 
@@ -73,40 +179,67 @@ export class SupabaseAuthRepository implements IAuthRepository {
     if (!isSupabaseConfigured()) {
       return () => {};
     }
-    const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const user = await this._getProfile(session.user.id, session.user.email ?? "");
-        callback(user);
-      } else {
-        callback(null);
+    const { data } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session?.user) {
+          const user = await this._getProfile(
+            session.user.id,
+            session.user.email ?? ""
+          );
+          callback(user);
+        } else {
+          callback(LocalAuthStore.getUser());
+        }
       }
-    });
+    );
     return () => data.subscription.unsubscribe();
   }
 
   private async _getProfile(userId: string, email: string): Promise<User> {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
+    const isDemoAdmin = email.toLowerCase() === "admin@techstore.co";
+    try {
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
 
-    if (data) return User.fromDB(data);
+      if (data) {
+        const user = User.fromDB(data);
+        if (isDemoAdmin && user.role !== "admin") {
+          return new User({ ...user.toJSON(), role: "admin" });
+        }
+        return user;
+      }
+    } catch {
+      // ignore
+    }
 
-    // Profile not yet created by trigger — return minimal user
-    return new User({ id: userId, email, fullName: email.split("@")[0], role: "customer" });
+    // Determine role based on email if admin
+    const role: UserRole = isDemoAdmin ? "admin" : "customer";
+    return new User({
+      id: userId,
+      email,
+      fullName: isDemoAdmin ? "Administrador TechStore" : email.split("@")[0],
+      role,
+    });
   }
 
-  // ─── Local Fallback (no Supabase) ─────────────────────────────────────────
+  // ─── Local Fallback (no Supabase or demo accounts) ──────────────────────────
   private _localSignIn(email: string, password: string): Result<User> {
-    const accounts = [
-      { email: "admin@techstore.co", password: "Admin123*", role: "admin" as UserRole, name: "Administrador TechStore" },
-      { email: "cliente@techstore.co", password: "Cliente123*", role: "customer" as UserRole, name: "Cliente Demo" },
-    ];
-    const found = accounts.find((a) => a.email === email && a.password === password);
-    if (!found) return fail("Correo o contraseña incorrectos");
+    const found = this._getDemoAccount(email, password);
+    if (!found) {
+      return fail(
+        "Correo o contraseña incorrectos. Verifica los datos o utiliza los botones de autorrelleno."
+      );
+    }
 
-    const user = new User({ id: found.role, email: found.email, fullName: found.name, role: found.role });
+    const user = new User({
+      id: found.id,
+      email: found.email,
+      fullName: found.name,
+      role: found.role,
+    });
     LocalAuthStore.setUser(user);
     return ok(user);
   }

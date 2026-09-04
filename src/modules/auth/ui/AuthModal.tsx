@@ -34,7 +34,7 @@ export default function AuthModal({
   title,
   subtitle,
 }: AuthModalProps) {
-  const { signIn, loading } = useAuthStore();
+  const { signIn, signUp, loading } = useAuthStore();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -47,12 +47,22 @@ export default function AuthModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    const result = await signIn(email, password);
-    if (result.success) {
-      toast.success(`Bienvenido, ${result.data.fullName}`);
-      onClose();
+    if (mode === "login") {
+      const result = await signIn(email, password);
+      if (result.success) {
+        toast.success(`Bienvenido, ${result.data.fullName}`);
+        onClose();
+      } else {
+        setError(result.error as string);
+      }
     } else {
-      setError(result.error as string);
+      const result = await signUp(email, password, fullName);
+      if (result.success) {
+        toast.success(`Cuenta creada con éxito. ¡Bienvenido, ${result.data.fullName}!`);
+        onClose();
+      } else {
+        setError(result.error as string);
+      }
     }
   };
 
